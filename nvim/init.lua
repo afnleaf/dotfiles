@@ -19,8 +19,10 @@ vim.api.nvim_command('hi NvimTreeNormal guibg=NONE ctermbg=NONE')
 vim.opt.mouse = 'a'
 
 -- Bootstrap lazy.nvim plugin manager
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+local lazypath = vim.fs.normalize(vim.fn.stdpath("data") .. "/lazy/lazy.nvim")
+--if not vim.loop.fs_stat(lazypath) then
+--if not vim.fs.stat(lazypath) then
+if vim.fn.empty(vim.fn.glob(lazypath)) > 0 then
     vim.fn.system({
         "git",
         "clone",
@@ -41,9 +43,17 @@ require("lazy").setup({
         config = function()
             require("nvim-treesitter.configs").setup({
                 ensure_installed = { "lua", "javascript", "typescript", "python" },
+                ignore_install = {},
+                modules = {},
+                sync_install = true,
+                auto_install = true,
                 highlight = {
                     enable = true,
+                    additional_vim_regex_highlighting = false,
                 },
+                indent = {
+                    enable = true
+                }
             })
         end,
     },
@@ -63,10 +73,13 @@ require("lazy").setup({
                     functions = { bold = true },
                     strings = { italic = true },
                     variables = {}
-                }
+                },
             }
             -- Set the colorscheme
             vim.cmd.colorscheme("monokai")
+
+            -- Custom highlight colour
+            vim.api.nvim_set_hl(0, 'Visual', { bg = "#264F78" })
 
             -- Force transparency after colorscheme is loaded
             vim.api.nvim_command('hi Normal guibg=NONE ctermbg=NONE')
@@ -104,7 +117,7 @@ require("lazy").setup({
             })
 
             codewindow.apply_default_keybinds()
-        end, 
+        end,
     },
     -- Auto-pairs
     {
@@ -150,7 +163,7 @@ require("lazy").setup({
             -- Add <> pairs
             npairs.add_rules({
                 Rule('<', '>')
-                    :with_pair(function(opts)
+                    :with_pair(function()
                         -- Add pair only in specific file types
                         return vim.tbl_contains({ 'html', 'xml', 'tsx', 'jsx', 'vue', 'svelte' }, vim.bo.filetype)
                     end)
@@ -170,108 +183,18 @@ require("lazy").setup({
         config = function()
             require("mason-lspconfig").setup({
                 ensure_installed = {
-                    "lua_ls",          -- Lua
-                    "pyright",         -- Python
-                    "cssls",           -- CSS
-                    "html",            -- HTML
-                    "emmet_ls",        -- Emmet
-                    "jsonls",          -- JSON
+                    "lua_ls",       -- Lua
+                    "pyright",      -- Python
+                    "cssls",        -- CSS
+                    "html",         -- HTML
+                    "emmet_ls",     -- Emmet
+                    "jsonls",       -- JSON
+                    "ts_ls",        -- Javascript/Typescript
                 },
                 automatic_installation = true,
             })
         end
     },
-    -- Add schemastore plugin
-    ---- LSP config
-    --{
-    --    "neovim/nvim-lspconfig",
-    --    dependencies = {
-    --        "hrsh7th/cmp-nvim-lsp",
-    --        "hrsh7th/nvim-cmp",
-    --        "L3MON4D3/LuaSnip",
-    --        "b0o/schemastore.nvim",  -- Add dependency here as well
-    --    },
-    --    config = function()
-    --        local lspconfig = require('lspconfig')
-    --        local capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-    --        -- Lua LSP configuration
-    --        lspconfig.lua_ls.setup({
-    --            capabilities = capabilities,
-    --            settings = {
-    --                Lua = {
-    --                    diagnostics = {
-    --                        globals = { 'vim' }
-    --                    },
-    --                    workspace = {
-    --                        library = vim.api.nvim_get_runtime_file("", true),
-    --                        checkThirdParty = false,
-    --                    },
-    --                    telemetry = {
-    --                        enable = false,
-    --                    },
-    --                },
-    --            },
-    --        })
-
-    --        -- Python LSP configuration
-    --        lspconfig.pyright.setup({
-    --            capabilities = capabilities,
-    --            settings = {
-    --                python = {
-    --                    analysis = {
-    --                        typeCheckingMode = "basic",
-    --                        autoSearchPaths = true,
-    --                        useLibraryCodeForTypes = true,
-    --                    },
-    --                },
-    --            },
-    --        })
-
-    --        -- HTML LSP configuration
-    --        lspconfig.html.setup({
-    --            capabilities = capabilities,
-    --            filetypes = { "html", "htmldjango" },
-    --        })
-
-    --        -- CSS LSP configuration
-    --        lspconfig.cssls.setup({
-    --            capabilities = capabilities,
-    --        })
-
-    --        -- JSON LSP configuration
-    --        lspconfig.jsonls.setup({
-    --            capabilities = capabilities,
-    --            settings = {
-    --                json = {
-    --                    schemas = require('schemastore').json.schemas(),
-    --                    validate = { enable = true },
-    --                },
-    --            },
-    --        })
-
-    --        -- Emmet LSP configuration
-    --        lspconfig.emmet_ls.setup({
-    --            capabilities = capabilities,
-    --            filetypes = {
-    --                'html', 'css', 'scss', 'javascript',
-    --                'javascriptreact', 'typescriptreact',
-    --                'svelte', 'vue', 'htmldjango'
-    --            },
-    --        })
-
-    --        -- Global LSP keybindings
-    --        vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, { noremap = true, silent = true })
-    --        vim.keymap.set('n', 'gd', vim.lsp.buf.definition, { noremap = true, silent = true })
-    --        vim.keymap.set('n', 'K', vim.lsp.buf.hover, { noremap = true, silent = true })
-    --        vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, { noremap = true, silent = true })
-    --        vim.keymap.set('n', '<C-k>', vim.lsp.buf.signature_help, { noremap = true, silent = true })
-    --        vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, { noremap = true, silent = true })
-    --        vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, { noremap = true, silent = true })
-    --        vim.keymap.set('n', 'gr', vim.lsp.buf.references, { noremap = true, silent = true })
-    --        vim.keymap.set('n', '<leader>f', vim.lsp.buf.format, { noremap = true, silent = true })
-    --    end
-    --},
     {
         "neovim/nvim-lspconfig",
         dependencies = {
@@ -306,7 +229,21 @@ require("lazy").setup({
                 end
             end
 
-            -- Common LSP setup function
+            vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(
+                vim.lsp.handlers.hover, {
+                    border = "rounded",
+                    wrap_at = 100,
+                }
+            )
+
+            vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(
+                vim.lsp.handlers.signature_help, {
+                    border = "rounded",
+                    wrap_at = 100,
+                }
+            )
+
+            -- LSP setup function
             local function setup_lsp(server, config)
                 config = config or {}
                 config.capabilities = capabilities
@@ -316,8 +253,20 @@ require("lazy").setup({
                 lspconfig[server].setup(config)
             end
 
+            local function get_mason_bin(bin)
+                local is_windows = vim.fn.has("win32") == 1
+                local mason_root = vim.fs.normalize(vim.fn.stdpath("data") .. "/mason/bin")
+
+                if is_windows then
+                    return mason_root .. bin .. ".cmd"
+                else
+                    return mason_root .. bin
+                end
+            end
+
             -- Set up each LSP server with all your existing configurations
             setup_lsp('lua_ls', {
+                cmd = { get_mason_bin("/lua-language-server") },
                 settings = {
                     Lua = {
                         diagnostics = {
@@ -362,12 +311,32 @@ require("lazy").setup({
             })
 
             setup_lsp('emmet_ls', {
+                cmd = { get_mason_bin("/emmet-ls"), "--stdio" },
                 filetypes = {
                     'html', 'css', 'scss', 'javascript',
                     'javascriptreact', 'typescriptreact',
                     'svelte', 'vue', 'htmldjango'
                 },
             })
+
+            setup_lsp("ts_ls", {
+                cmd = { get_mason_bin("/typescript-language-server"), "--stdio"},
+                filetypes = {
+                    "javascript", "javascriptreact", "javascript.jsx",
+                    "typescript", "typescriptreact", "typescript.tsx"
+                },
+                settings = {
+                    javascript = {
+                        suggesstFromUseImport = true,
+                        importModuleSpecifier = "relative"
+                    },
+                    typescript = {
+                        suggesstFromUseImport = true,
+                        importModuleSpecifier = "relative"
+                    },
+                }
+            })
+
         end
     },
     -- Autocompletion setup
@@ -396,7 +365,7 @@ require("lazy").setup({
                     ['<C-f>'] = cmp.mapping.scroll_docs(4),
                     ['<C-Space>'] = cmp.mapping.complete(),
                     ['<C-e>'] = cmp.mapping.abort(),
-                    ['<CR>'] = cmp.mapping.confirm({ select = true }),
+                    ['<CR>'] = cmp.mapping.confirm({ select = false }),
                     ['<Tab>'] = cmp.mapping(function(fallback)
                         if cmp.visible() then
                             cmp.select_next_item()
@@ -419,10 +388,9 @@ require("lazy").setup({
 })
 
 -- Keymaps for minimap control
-vim.api.nvim_set_keymap('n', '<Leader>mm', ':lua require("codewindow").toggle_minimap()<CR>', 
+vim.api.nvim_set_keymap('n', '<Leader>mm', ':lua require("codewindow").toggle_minimap()<CR>',
     {noremap = true, silent = true})
-vim.api.nvim_set_keymap('n', '<Leader>mo', ':lua require("codewindow").open_minimap()<CR>', 
+vim.api.nvim_set_keymap('n', '<Leader>mo', ':lua require("codewindow").open_minimap()<CR>',
     {noremap = true, silent = true})
-vim.api.nvim_set_keymap('n', '<Leader>mc', ':lua require("codewindow").close_minimap()<CR>', 
+vim.api.nvim_set_keymap('n', '<Leader>mc', ':lua require("codewindow").close_minimap()<CR>',
     {noremap = true, silent = true})
-
