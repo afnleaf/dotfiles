@@ -7,6 +7,12 @@ vim.opt.tabstop = 4
 vim.opt.shiftwidth = 4
 vim.opt.expandtab = true
 
+
+-- Number line
+vim.opt.number = true
+vim.opt.relativenumber = true
+vim.opt.signcolumn = "yes"
+
 -- Set up transparency
 vim.api.nvim_command('hi Normal guibg=NONE ctermbg=NONE')
 vim.api.nvim_command('hi SignColumn guibg=NONE ctermbg=NONE')
@@ -17,6 +23,43 @@ vim.api.nvim_command('hi NvimTreeNormal guibg=NONE ctermbg=NONE')
 
 -- Mouse Support
 vim.opt.mouse = 'a'
+
+-- State
+vim.g.lsp_enabled = true
+vim.g.completion_enabled = true
+
+-- Toggle LSP
+function Toggle_lsp()
+    local buf = vim.api.nvim_get_current_buf()
+    local clients = vim.lsp.get_clients({buffer = buf})
+    if #clients > 0 then
+        -- If there are active clients, stop them
+        for _, client in ipairs(clients) do
+            vim.lsp.stop_client(client.id)
+        end
+        vim.g.lsp_enabled = false
+        vim.notify("LSP disabled for current buffer")
+    else
+        -- Restart LSP for current buffer
+        vim.cmd("LspStart")
+        vim.g.lsp_enabled = true
+        vim.notify("LSP enabled for current buffer")
+    end
+end
+
+-- Toggle completion
+function Toggle_completion()
+    local cmp = require('cmp')
+    if vim.g.completion_enabled then
+        cmp.setup.buffer({ enabled = false })
+        vim.g.completion_enabled = false
+        vim.notify("Completion disabled")
+    else
+        cmp.setup.buffer({ enabled = true })
+        vim.g.completion_enabled = true
+        vim.notify("Completion enabled")
+    end
+end
 
 -- Bootstrap lazy.nvim plugin manager
 local lazypath = vim.fs.normalize(vim.fn.stdpath("data") .. "/lazy/lazy.nvim")
@@ -40,6 +83,7 @@ require("lazy").setup({
     {
         "nvim-treesitter/nvim-treesitter",
         build = ":TSUpdate",
+        event = { "BufReadPost", "BufNewFile" },
         config = function()
             require("nvim-treesitter.configs").setup({
                 ensure_installed = { "lua", "javascript", "typescript", "python" },
@@ -93,32 +137,32 @@ require("lazy").setup({
         end,
     },
     -- Minimap
-    {
-       'gorbit99/codewindow.nvim',
-        dependencies = {
-            "nvim-treesitter/nvim-treesitter",
-        },
-        config = function()
-            local codewindow = require('codewindow')
-            codewindow.setup({
-                active_in_terminals = false,
-                max_minimap_height = 100,
-                minimap_width = 20,
-                use_treesitter = true,
-                exclude_filetypes = {'help'},
-                window_border = 'single',
-                use_lsp = true,
-                screen_bounds = 'lines',
-                z_index = 1,
-                window = {
-                    scrollbar = true,
-                    focusable = true,
-                },
-            })
+    --{
+    --   'gorbit99/codewindow.nvim',
+    --    dependencies = {
+    --        "nvim-treesitter/nvim-treesitter",
+    --    },
+    --    config = function()
+    --        local codewindow = require('codewindow')
+    --        codewindow.setup({
+    --            active_in_terminals = false,
+    --            max_minimap_height = 100,
+    --            minimap_width = 20,
+    --            use_treesitter = true,
+    --            exclude_filetypes = {'help'},
+    --            window_border = 'single',
+    --            use_lsp = true,
+    --            screen_bounds = 'lines',
+    --            z_index = 1,
+    --            window = {
+    --                scrollbar = true,
+    --                focusable = true,
+    --            },
+    --        })
 
-            codewindow.apply_default_keybinds()
-        end,
-    },
+    --        codewindow.apply_default_keybinds()
+    --    end,
+    --},
     -- Auto-pairs
     {
         'windwp/nvim-autopairs',
@@ -129,16 +173,6 @@ require("lazy").setup({
                 check_ts = true, -- Use treesitter to check for pairs
                 enable_check_bracket_line = true,  -- Don't add pairs if it already has a close pair in the same line
                 ignored_next_char = "[%w%.]", -- Don't add pairs if the next char is alphanumeric
-                fast_wrap = {
-                    map = '<M-e>',  -- Alt+e to fast wrap the pair
-                    chars = { '{', '[', '(', '"', "'" },
-                    pattern = [=[[%'%"%>%]%)%}%,]]=],
-                    end_key = '$',
-                    keys = 'qwertyuiopzxcvbnmasdfghjkl',
-                    check_comma = true,
-                    highlight = 'Search',
-                    highlight_grey='Comment'
-                },
                 -- Add spaces between parentheses
                 enable_afterquote = true,  -- add bracket pairs after quote
                 enable_moveright = true,   -- enable moving right when inserting pairs
@@ -147,7 +181,7 @@ require("lazy").setup({
             -- Add specific rules
             local Rule = require('nvim-autopairs.rule')
             -- Add spaces between parentheses
-            local brackets = { { '(', ')' }, { '[', ']' }, { '{', '}' } }
+            local brackets = { { '(', ')' }, { '[', ']' }, { '{', '}' }}
             npairs.add_rules {
                 -- Add space between parentheses
                 Rule(' ', ' ')
@@ -165,7 +199,16 @@ require("lazy").setup({
                 Rule('<', '>')
                     :with_pair(function()
                         -- Add pair only in specific file types
-                        return vim.tbl_contains({ 'html', 'xml', 'tsx', 'jsx', 'vue', 'svelte' }, vim.bo.filetype)
+                        return vim.tbl_contains({ 'html', 'xml', 'tsx', 'jsx', 'vue', 'svelte', 'rs' }, vim.bo.filetype)
+                    end)
+            })
+            npairs.add_rules({
+                Rule('|', '|')
+                    :with_pair(function()
+                        return vim.bo.filetype == 'rust'
+                    end)
+                    :with_move(function(opts)
+                        return opts.char == '|'
                     end)
             })
         end
@@ -173,6 +216,8 @@ require("lazy").setup({
     -- Mason for LSP management
     {
         "williamboman/mason.nvim",
+        lazy = true,
+        event = "VeryLazy",
         build = ":MasonUpdate",
         config = function()
             require("mason").setup()
@@ -190,13 +235,17 @@ require("lazy").setup({
                     "emmet_ls",     -- Emmet
                     "jsonls",       -- JSON
                     "ts_ls",        -- Javascript/Typescript
+                    -- i don't want to use one for rust, compiler better
+
                 },
                 automatic_installation = true,
             })
         end
     },
+    -- LSP Configuration
     {
         "neovim/nvim-lspconfig",
+        event = { "BufReadPre", "BufNewFile"},
         dependencies = {
             "hrsh7th/cmp-nvim-lsp",
             "hrsh7th/nvim-cmp",
@@ -329,6 +378,7 @@ require("lazy").setup({
     -- Autocompletion setup
     {
         'hrsh7th/nvim-cmp',
+        event = { "InsertEnter", "CmdlineEnter"},
         dependencies = {
             'L3MON4D3/LuaSnip',
             'saadparwaiz1/cmp_luasnip',
@@ -374,10 +424,20 @@ require("lazy").setup({
     },
 })
 
+-- Keymaps
+vim.api.nvim_set_keymap('n', '<leader>tl', ':lua Toggle_lsp()<CR>',
+    {noremap = true, silent = true, desc = 'Toggle LSP'})
+vim.api.nvim_set_keymap('n', '<leader>tc', ':lua Toggle_completion()<CR>',
+    {noremap = true, silent = true, desc = 'Toggle Completion'})
+vim.api.nvim_set_keymap('n', '<leader>tr', ':set relativenumber!<CR>',
+    {noremap = true, silent = true, desc = 'Toggle relative line numbers'})
+
+
+
 -- Keymaps for minimap control
-vim.api.nvim_set_keymap('n', '<Leader>mm', ':lua require("codewindow").toggle_minimap()<CR>',
-    {noremap = true, silent = true})
-vim.api.nvim_set_keymap('n', '<Leader>mo', ':lua require("codewindow").open_minimap()<CR>',
-    {noremap = true, silent = true})
-vim.api.nvim_set_keymap('n', '<Leader>mc', ':lua require("codewindow").close_minimap()<CR>',
-    {noremap = true, silent = true})
+--vim.api.nvim_set_keymap('n', '<Leader>mm', ':lua require("codewindow").toggle_minimap()<CR>',
+--    {noremap = true, silent = true})
+--vim.api.nvim_set_keymap('n', '<Leader>mo', ':lua require("codewindow").open_minimap()<CR>',
+--    {noremap = true, silent = true})
+--vim.api.nvim_set_keymap('n', '<Leader>mc', ':lua require("codewindow").close_minimap()<CR>',
+--    {noremap = true, silent = true})
