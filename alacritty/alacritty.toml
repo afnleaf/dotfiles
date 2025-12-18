@@ -1,0 +1,9 @@
+[font]
+size = 13.5
+
+[font.normal]
+family = "JetBrainsMono Nerd Font Mono"
+
+[colors.primary]
+background = '#121212'
+foreground = '#f8f6f1'
