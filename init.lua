@@ -88,6 +88,50 @@ require("lazy").setup({
             })
         end,
     },
+--    -- Solarized theme
+--    {
+--        'maxmx03/solarized.nvim',
+--        priority = 1000, -- Make sure to load this before other plugins
+--        opts = {
+--            -- Configure transparency
+--            transparent = {
+--                enabled = true,   -- Master switch for transparency
+--                normal = true,    -- Main editor background
+--                normalfloat = true, -- Floating windows
+--                telescope = true,
+--                nvimtree = true,
+--                -- You can add more components here if you like
+--            },
+--            -- You can optionally configure styles here
+--            styles = {
+--                comments = { italic = true },
+--                keywords = { italic = true },
+--                functions = { bold = true },
+--                strings = { italic = true },
+--            },
+--        },
+--        config = function(_, opts)
+--            -- CRITICAL: Set the background to 'light' for Solarized Light
+--            vim.o.background = 'light'
+--
+--            -- Enable true color support
+--            vim.o.termguicolors = true
+--
+--            -- Load the colorscheme
+--            require('solarized').setup(opts)
+--            vim.cmd.colorscheme 'solarized'
+--
+--            -- Your custom highlight for Visual mode (optional, you can remove this)
+--            vim.api.nvim_set_hl(0, 'Visual', { bg = "#93a1a1" })
+--
+--            -- You may not need these force-transparency lines anymore,
+--            -- as the theme's `transparent = true` option should handle it.
+--            -- You can try commenting them out to see if it still works.
+--            -- vim.api.nvim_command('hi Normal guibg=NONE ctermbg=NONE')
+--            -- vim.api.nvim_command('hi LineNr guibg=NONE ctermbg=NONE')
+--            -- ... etc
+--        end,
+--    },
     -- Monokai theme
     {
         "tanvirtin/monokai.nvim",
@@ -242,6 +286,4 @@ vim.api.nvim_set_keymap('n', '<leader>tc', ':lua Toggle_completion()<CR>',
     {noremap = true, silent = true, desc = 'Toggle Completion'})
 vim.api.nvim_set_keymap('n', '<leader>tr', ':set relativenumber!<CR>',
     {noremap = true, silent = true, desc = 'Toggle relative line numbers'})
-
-
 
