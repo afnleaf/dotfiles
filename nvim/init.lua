@@ -28,6 +28,12 @@ vim.opt.mouse = 'a'
 vim.g.lsp_enabled = true
 vim.g.completion_enabled = true
 
+-- Autoreload
+vim.opt.autoread = true
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
+  command = "checktime",
+})
+
 -- Toggle LSP
 function Toggle_lsp()
     local buf = vim.api.nvim_get_current_buf()
