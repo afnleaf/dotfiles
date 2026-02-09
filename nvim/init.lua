@@ -28,12 +28,34 @@ vim.opt.mouse = 'a'
 vim.g.lsp_enabled = true
 vim.g.completion_enabled = true
 
--- Autoreload
+-- Autoreload configuration
 vim.opt.autoread = true
-vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold" }, {
-  command = "checktime",
+
+-- Disable swap files to avoid conflicts
+vim.opt.swapfile = false
+vim.opt.backup = false
+vim.opt.writebackup = false
+
+-- Auto-reload on various events
+vim.api.nvim_create_autocmd({ "FocusGained", "BufEnter", "CursorHold", "CursorHoldI" }, {
+  pattern = "*",
+  callback = function()
+    if vim.fn.mode() ~= 'c' then
+      vim.cmd('checktime')
+    end
+  end,
 })
 
+-- Notify when file changes externally
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+  pattern = "*",
+  callback = function()
+    vim.notify("File changed on disk. Buffer reloaded.", vim.log.levels.WARN)
+  end,
+})
+
+-- Reduce the time before CursorHold fires (milliseconds)
+vim.opt.updatetime = 300
 -- Toggle LSP
 function Toggle_lsp()
     local buf = vim.api.nvim_get_current_buf()
