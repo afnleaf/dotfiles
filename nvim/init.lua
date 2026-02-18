@@ -101,7 +101,11 @@ require("lazy").setup({
                     "lua",
                     "javascript",
                     "typescript",
-                    "python"
+                    "python",
+                    "rust",
+                    "c",
+                    "markdown",
+                    "markdown_inline",
                 },
                 ignore_install = {},
                 modules = {},
