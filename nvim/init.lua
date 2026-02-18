@@ -94,7 +94,7 @@ require("lazy").setup({
     {
         "nvim-treesitter/nvim-treesitter",
         config = function()
-            require("nvim-treesitter.configs").setup({
+            require("nvim-treesitter.config").setup({
                 ensure_installed = {
                     "lua",
                     "javascript",
@@ -268,7 +268,7 @@ require("lazy").setup({
         'hrsh7th/nvim-cmp',
         event = { "InsertEnter", "CmdlineEnter"},
         dependencies = {
-            { 'L3MON4D3/LuaSnip', build = false },
+            { 'L3MON4D3/LuaSnip', submodules = false },
             'saadparwaiz1/cmp_luasnip',
             'hrsh7th/cmp-nvim-lsp',
             'hrsh7th/cmp-buffer',
