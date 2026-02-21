@@ -92,33 +92,38 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
     -- Treesitter
     {
-        "nvim-treesitter/nvim-treesitter",
-        config = function()
-            require("nvim-treesitter.config").setup({
-                ensure_installed = {
-                    "lua",
-                    "javascript",
-                    "typescript",
-                    "python",
-                    "rust",
-                    "c",
-                    "markdown",
-                    "markdown_inline",
-                },
-                ignore_install = {},
-                modules = {},
-                sync_install = true,
-                auto_install = true,
-                highlight = {
-                    enable = true,
-                    additional_vim_regex_highlighting = false,
-                },
-                indent = {
-                    enable = true
-                }
-            })
-        end,
+    "nvim-treesitter/nvim-treesitter",
+    opts = {
+        ensure_installed = {
+            "lua",
+            "javascript",
+            "typescript",
+            "python",
+            "rust",
+            "c",
+            "markdown",
+            "markdown_inline",
+        },
+        ignore_install = {},
+        modules = {},
+        sync_install = true,
+        auto_install = true,
+        highlight = {
+            enable = true,
+            additional_vim_regex_highlighting = false,
+        },
+        indent = {
+            enable = true
+        }
     },
+    config = function(_, opts)
+        local ok, configs = pcall(require, "nvim-treesitter.configs")
+        if not ok then
+            configs = require("nvim-treesitter.config")
+        end
+        configs.setup(opts)
+    end,
+},
 --    -- Solarized theme
 --    {
 --        'maxmx03/solarized.nvim',
